@@ -2,6 +2,8 @@
 
 import Button from '@/app/components/Button'
 import Input from '@/app/components/inputs/Input'
+import axios from 'axios'
+import { signIn } from 'next-auth/react'
 import { useCallback, useState } from 'react'
 import { FieldValues, SubmitHandler, useForm } from 'react-hook-form'
 import { BsFacebook, BsGithub, BsGoogle } from 'react-icons/bs'
@@ -32,14 +34,23 @@ const AuthForm = () => {
     const onSubmit: SubmitHandler<FieldValues> = (data) => {
         setIsLoading(true)
         if (variant === 'REGISTER') {
+            axios.post('/api/register', data)
+            console.log(data)
         }
 
         if (variant === 'LOGIN') {
+            signIn('credentials', {
+                ...data,
+                redirect: false,
+            })
         }
     }
 
     const socialAction = (action: string) => {
         setIsLoading(true)
+        signIn(action, {
+            redirect: false,
+        })
     }
 
     return (
@@ -81,8 +92,8 @@ const AuthForm = () => {
                         <Button
                             disabled={isLoading}
                             fullWidth
-                            type="button"
-                            onClick={() => console.log('first')}
+                            type="submit"
+                            // onClick={() => console.log('first')}
                         >
                             {variant === 'LOGIN' ? 'Sign in' : 'Register'}
                         </Button>
