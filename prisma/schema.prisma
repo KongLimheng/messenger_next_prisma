@@ -3,6 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  output = "./generator"
 }
 
 datasource db {
@@ -21,7 +22,7 @@ model User {
   updateAt DateTime @updatedAt
 
   // conversationsIds String[]
-  converstions Conversation[]
+  converstions UserOnConversation[]
   
   // seenMessageIds String[]
   seenMessages Message[] @relation("Seen")
@@ -60,7 +61,7 @@ model Conversation {
   messages Message[]
 
   // userIds String[]
-  users User[]
+  users UserOnConversation[]
 }
 
 model Message{
@@ -75,5 +76,21 @@ model Message{
   conversation Conversation[]
 
   sender User[]
-
 }
+
+model UserOnConversation {
+
+  id Int @id @default(autoincrement())
+  conversations Conversation @relation(fields: [conversationIds], references: [id])// relation scalar field (used in the `@relation` attribute above)
+  conversationIds Int
+
+  userIds Int
+  users User @relation(fields: [userIds], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+// model UserOnMessage{
+//   id Int @id @default(autoincrement())
+
+// }

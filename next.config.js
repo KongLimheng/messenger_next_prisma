@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    // images: '/images/*',
+    experimental: {
+        appDir: true,
+        swcPlugins: [['next-superjson-plugin', {}]],
+    },
 }
 
 module.exports = nextConfig

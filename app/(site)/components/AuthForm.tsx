@@ -3,17 +3,29 @@
 import Button from '@/app/components/Button'
 import Input from '@/app/components/inputs/Input'
 import axios from 'axios'
-import { signIn } from 'next-auth/react'
-import { useCallback, useState } from 'react'
+import { signIn, useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
+import { useCallback, useEffect, useState } from 'react'
 import { FieldValues, SubmitHandler, useForm } from 'react-hook-form'
+import { toast } from 'react-hot-toast'
 import { BsFacebook, BsGithub, BsGoogle } from 'react-icons/bs'
 import AuthSocialButton from './AuthSocialButton'
 
 type Variant = 'LOGIN' | 'REGISTER'
 
 const AuthForm = () => {
+    const session = useSession()
     const [variant, setVariant] = useState<Variant>('LOGIN')
     const [isLoading, setIsLoading] = useState(false)
+    const router = useRouter()
+
+    useEffect(() => {
+        if (session.status === 'authenticated') {
+            console.log(session)
+
+            router.push('/users')
+        }
+    }, [session.status, router])
 
     const toggleVariant = useCallback(() => {
         variant === 'LOGIN' ? setVariant('REGISTER') : setVariant('LOGIN')
@@ -34,7 +46,22 @@ const AuthForm = () => {
     const onSubmit: SubmitHandler<FieldValues> = (data) => {
         setIsLoading(true)
         if (variant === 'REGISTER') {
-            axios.post('/api/register', data)
+            axios
+                .post('/api/register', data)
+                .then(() => {
+                    toast.success('Register Success')
+                    signIn('credentials', data)
+                })
+                .catch((res) => {
+                    // if (res.response.status !== 200) {
+                    //     console.log(res.response.data)
+                    // } else {
+                    //     toast.success()
+                    // }
+                    toast.error('Bad request')
+                    console.log(res)
+                })
+                .finally(() => setIsLoading(false))
             console.log(data)
         }
 
@@ -43,6 +70,18 @@ const AuthForm = () => {
                 ...data,
                 redirect: false,
             })
+                .then((callback) => {
+                    console.log(callback)
+                    if (callback?.error) {
+                        toast.error(callback.error)
+                    }
+
+                    if (callback?.ok && !callback.error) {
+                        toast.success('Logged in')
+                        router.push('/users')
+                    }
+                })
+                .finally(() => setIsLoading(false))
         }
     }
 
@@ -64,7 +103,7 @@ const AuthForm = () => {
                             type="text"
                             id="name"
                             errors={errors}
-                            required
+                            // required
                             disabled={isLoading}
                         />
                     )}
@@ -75,7 +114,7 @@ const AuthForm = () => {
                         id="email"
                         register={register}
                         errors={errors}
-                        required
+                        // required
                         disabled={isLoading}
                     />
                     <Input
@@ -84,7 +123,7 @@ const AuthForm = () => {
                         id="password"
                         register={register}
                         errors={errors}
-                        required
+                        // required
                         disabled={isLoading}
                     />
 

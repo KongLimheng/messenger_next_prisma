@@ -1,0 +1,96 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output = "./generator"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id Int @id @default(autoincrement())
+  name String?
+  email String? @unique
+  emailVerified DateTime?
+  image String?
+  hashedPassword String?
+  createAt DateTime @default(now())
+  updateAt DateTime @updatedAt
+
+  // conversationsIds String[]
+  converstions UserOnConversation[]
+  
+  // seenMessageIds String[]
+  seenMessages Message[] @relation("Seen")
+
+  accounts Account[] @relation("UserAccount")
+  messages Message[]
+}
+
+model Account{
+  id Int @id @default(autoincrement())
+  userId String
+  type String
+  provider String
+  providerAccountId String
+  refresh_token String?
+  access_token String?
+  expires_at Int?
+  token_type String?
+  scope String?
+  id_token String?
+  session_state String?
+
+  user User[] @relation("UserAccount")
+
+  @@unique([provider, providerAccountId])
+}
+
+model Conversation {
+  id Int @id @default(autoincrement())
+  createAt DateTime @default(now())
+  lastMessageAt DateTime @default(now())
+  name String?
+  isGroup Boolean?
+
+  // messagesIds String[]
+  messages Message[]
+
+  // userIds String[]
+  users UserOnConversation[]
+}
+
+model Message{
+  id Int @id @default(autoincrement())
+  body String?
+  image String?
+  createAt DateTime @default(now())
+
+  // seenIds String[]
+  seen User[] @relation("Seen")
+
+  conversation Conversation[]
+
+  sender User[]
+}
+
+model UserOnConversation {
+
+  id Int @id @default(autoincrement())
+  conversations Conversation @relation(fields: [conversationIds], references: [id])// relation scalar field (used in the `@relation` attribute above)
+  conversationIds Int
+
+  userIds Int
+  users User @relation(fields: [userIds], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+// model UserOnMessage{
+//   id Int @id @default(autoincrement())
+
+// }
